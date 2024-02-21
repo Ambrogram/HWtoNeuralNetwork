@@ -202,22 +202,32 @@ def one_hot(Y):
 
 def forward_prop(params, X):
     # Forward propagation for a 10-layer network
+    # Initialize the input data as the first set of activations
     A = X
     cache = {'A0': X}
+     # Calculate the number of layers in the network based on the parameters
     L = len(params) // 2  # Number of layers
 
+    # Iterate over each layer, excluding the output layer
     for l in range(1, L):
+        # Compute the linear part of the neuron's computation for layer l
         Z = params['W' + str(l)].dot(A) + params['b' + str(l)]
+        # Apply the ReLU activation function to get the activations for layer l
         A = ReLU(Z)
+        # Store the activations and pre-activation values for layer l in the cache
         cache['A' + str(l)] = A
         cache['Z' + str(l)] = Z
 
-    # Output layer
+    # Handling the output layer
+    # Compute the linear part of the neuron's computation for the output layer
     Z = params['W' + str(L)].dot(A) + params['b' + str(L)]
+    # Apply the softmax function to get the activations for the output layer
     A = softmax(Z)
+    # Store the activations and pre-activation values for the output layer in the cache
     cache['A' + str(L)] = A
     cache['Z' + str(L)] = Z
 
+    # Return the cache containing all activations and pre-activation values
     return cache
 
 
