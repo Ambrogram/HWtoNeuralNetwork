@@ -71,25 +71,6 @@ def init_params():
     # W1 is initialized with random values for connections between the input layer (784 units, e.g., for an image input like MNIST dataset) 
     # and the first hidden layer (10 units). Random initialization helps to break symmetry in the learning process.
     # Subtracting 0.5 centers the values around zero.
-
-    """
-    The numbers in the brackets (10, 784) in the line W1 = np.random.rand(10, 784) - 0.5 specify the shape of the array that is being created and filled with random values. Let's break down what each number represents: 10: 
-    This number represents the number of neurons (or units) in the first hidden layer of the neural network. In the context of this code, it means that there are 10 neurons in the first hidden layer.
-
-    784: This number corresponds to the number of input features. In the example given, it is suggested that the network is designed for an input like the MNIST dataset, where each input is an image of 28x28 pixels. Since 28x28 equals 784, 
-    each image is represented as a flattened array of 784 features (each feature representing one pixel's intensity).
-
-    So, when np.random.rand(10, 784) is executed, it creates a 2-dimensional NumPy array with the shape of 10 rows and 784 columns. Each element of this array is a randomly generated number between 0 and 1 (as np.random.rand generates random 
-    numbers in this range). Subtracting 0.5 from each element shifts these random values to be centered around 0, ranging from -0.5 to 0.5. This centering is a common practice in neural network initialization as it can help in speeding up the
-    convergence of the training process.
-
-    In the context of a neural network:
-
-    Each row of the array W1 represents the weights connecting all input features to a particular neuron in the first hidden layer.
-    Each column corresponds to a specific input feature's weight across all neurons in the layer.
-    This arrangement of weights is fundamental for the matrix operations performed during the forward pass of a neural network. The weights in W1 will be updated during the training process to minimize the loss function of the network.
-    """
-    
         
     W1 = np.random.rand(10, 784) - 0.5
     
@@ -98,26 +79,6 @@ def init_params():
     
     # W2 is the weight matrix between the first hidden layer and the output layer (both having 10 units).
     # Initialized randomly to maintain diversity in the initial learned representations.
-    """
-    First 10: This number represents the number of neurons in the layer that W2 is associated with. In this context, it indicates that W2 is the weight matrix for a layer with 10 neurons.
-
-    Second 10: This second number represents the number of neurons in the preceding layer (or the number of inputs to the layer for which W2 is the weight matrix). Since it is also 10, 
-    it implies that the previous layer (which could be either an input layer or another hidden layer) also consists of 10 neurons.
-
-    When np.random.rand(10, 10) is executed, it creates a 2-dimensional NumPy array with 10 rows and 10 columns. Each element of this array is a randomly generated number between 0 and 1. 
-    Subtracting 0.5 from these values shifts the range of these initial weights to be between -0.5 and 0.5. This range is often preferred in neural network initialization as it helps in 
-    maintaining a balance in the initial neuron activations, preventing them from starting too large or too small.
-
-    In the Context of a Neural Network:
-    Each row of W2 corresponds to one neuron in the layer and contains the weights connecting that neuron to all neurons in the previous layer. For example, the first row in W2 contains 
-    the weights that connect the first neuron in this layer to all 10 neurons in the previous layer.
-    Each column of W2 represents the weights associated with a particular neuron in the previous layer as they connect to every neuron in the current layer. For instance, the first column 
-    in W2 represents the weights from the first neuron in the previous layer to each of the 10 neurons in the current layer.
-    An Example:
-    If this is a neural network for image classification, W2 might be the weights between two hidden layers, both containing 10 neurons. The weight W2[i, j] would represent the strength of 
-    the connection from the j-th neuron in the first hidden layer to the i-th neuron in the second hidden layer. These weights are crucial as they define how the activations from one layer 
-    propagate to the next, and they will be iteratively adjusted during the training process.
-    """
     
     W2 = np.random.rand(10, 10) - 0.5
     
@@ -159,9 +120,9 @@ def gradient_descent(X, Y, alpha, iterations, mini_batch_size, dropout_rate=0.5,
         mini_batches = create_mini_batches(X, Y, mini_batch_size)
         for mini_batch in mini_batches:
             (mini_batch_X, mini_batch_Y) = mini_batch
-            Z1, A1, Z2, A2, D1 = forward_prop(W1, b1, W2, b2, mini_batch_X, dropout_rate)
-            dW1, db1, dW2, db2 = backward_prop(Z1, A1, Z2, A2, W1, W2, mini_batch_X, mini_batch_Y, D1, dropout_rate)
-            W1, b1, W2, b2 = update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha, lambd)
+            Z1, A1, _, A2, D1 = forward_prop(W1, b1, W2, b2, mini_batch_X, dropout_rate)
+            dW1, db1, _, db2 = backward_prop(Z1, A1, _, A2, _, _, mini_batch_X, mini_batch_Y, D1, dropout_rate)
+            W1, b1, W2, b2 = update_params(W1, b1, W2, b2, dW1, db1, _, db2, alpha, lambd)
         if i % 10 == 0:
             predictions = get_predictions(A2)
             print("Iteration: ", i, "Accuracy: ", get_accuracy(predictions, mini_batch_Y))
@@ -183,7 +144,7 @@ def softmax(Z):
     A = np.exp(Z) / sum(np.exp(Z))
     return A
 
-def forward_prop(W1, b1, W2, b2, X):
+def forward_prop(W1, b1, W2, b2, X, dropout_rate=0.5):
     # Forward propagation function computes the predictions of the neural network.
     # 'X' is the input data, 'W1', 'b1', 'W2', and 'b2' are the network parameters.
     
@@ -207,6 +168,7 @@ def forward_prop(W1, b1, W2, b2, X):
 
 def ReLU_deriv(Z):
     # Derivative of the ReLU function.
+    return np.where(Z > 0, 1, 0)
     # Used in backpropagation to compute gradients. For ReLU, the derivative is 1 if Z is greater than 0, else it's 0.
     # Z is an array of values for which the derivative of ReLU needs to be computed.
     # The expression 'Z > 0' performs an element-wise comparison of each element in Z with 0.
@@ -349,51 +311,18 @@ def gradient_descent(X, Y, alpha, iterations, dropout_rate=0.5, lambd=0.1 ):
 W1, b1, W2, b2 = gradient_descent(X_train, Y_train, 0.10, 500)
 
 def make_predictions(X, W1, b1, W2, b2):
-    # Conducts forward propagation through the neural network to make predictions based on input X.
-    
-    _, _, _, A2 = forward_prop(W1, b1, W2, b2, X)
-    # Calls the forward_prop function, passing in the weights, biases, and input data.
-    # The forward_prop function returns four values (Z1, A1, Z2, A2), but only A2 (the activation of the last layer) is needed here.
-    # A2 contains the network's output for the input data X.
-
-    predictions = get_predictions(A2)
-    # Converts the output of the neural network (A2) into class predictions.
-    # It uses the get_predictions function, which typically applies np.argmax to find the index of the maximum value in each column of A2.
-    # This index represents the predicted class.
-
+    A2, _ = forward_prop(W1, b1, W2, b2, X)  # Unpack the two expected return values
+    predictions = (A2 > 0.5).astype(int)  # Threshold at 0.5 for binary classification
     return predictions
-    # Returns the predicted classes for the input data X.
+
+
 
 def test_prediction(index, W1, b1, W2, b2):
-    # Tests and visualizes the prediction for a specific sample in the dataset.
-    
-    current_image = X_train[:, index, None]
-    # Extracts the image data for the given 'index' from the training set X_train.
-    # The 'None' is used to maintain a 2D shape, which is necessary for matrix operations in the neural network.
-
+    # Ensure X_train is correctly shaped as per your neural network's input layer
     prediction = make_predictions(X_train[:, index, None], W1, b1, W2, b2)
-    # Makes a prediction using the make_predictions function for the selected image.
-    # The same weights and biases from the trained network are used.
+    actual_label = Y_train[0, index]  # Assuming Y_train is shaped as (1, number of examples)
+    print(f"Prediction: {prediction[0,0]}, Actual label: {actual_label}")
 
-    label = Y_train[index]
-    # Retrieves the actual label for the selected image from the training labels Y_train.
-
-    print("Prediction: ", prediction)
-    print("Label: ", label)
-    # Prints out the predicted class and the actual label for comparison.
-
-    current_image = current_image.reshape((28, 28)) * 255
-    # Reshapes the image data from a flattened array back into a 28x28 format suitable for displaying.
-    # Multiplies by 255 to convert the normalized pixel values back to the original scale (0-255).
-
-    plt.gray()
-    # Sets the color map to grayscale for displaying the image.
-
-    plt.imshow(current_image, interpolation='nearest')
-    # Displays the image using matplotlib's imshow function with nearest-neighbor interpolation.
-
-    plt.show()
-    # Renders the plot, showing the image.
     
 test_prediction(0, W1, b1, W2, b2)
 test_prediction(1, W1, b1, W2, b2)
