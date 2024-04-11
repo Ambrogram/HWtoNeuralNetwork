@@ -10,17 +10,26 @@ import keras
 from keras.preprocessing.image import load_img
 from sklearn.model_selection import train_test_split
 from keras.preprocessing.image import ImageDataGenerator
+from keras.utils import plot_model  # Add missing import statement
 
 
-%%time
+# %%time
 import zipfile
-with zipfile.ZipFile("../input/dogs-vs-cats/train.zip",'r') as z:
+with zipfile.ZipFile("D:/Study Files/NEU/Academic/INFO7375 41272 ST Neural Networks & AI SEC 30 Spring 2024 [OAK-2-LC]/DogCat/train.zip",'r') as z:
     z.extractall(".")
-with zipfile.ZipFile("../input/dogs-vs-cats/test1.zip",'r') as z:
+with zipfile.ZipFile("D:/Study Files/NEU/Academic/INFO7375 41272 ST Neural Networks & AI SEC 30 Spring 2024 [OAK-2-LC]/DogCat/test1.zip",'r') as z:
     z.extractall(".")
     
-    
-filenames = os.listdir('/kaggle/working/train')
+# Start from a higher level that you know exists for sure
+start_path = 'D:/Study Files/NEU/Academic/INFO7375 41272 ST Neural Networks & AI SEC 30 Spring 2024 [OAK-2-LC]/DogCat'
+print("Directories in {}: ".format(start_path))
+print(os.listdir(start_path))
+
+path_to_check = 'D:/Study Files/NEU/Academic/INFO7375 41272 ST Neural Networks & AI SEC 30 Spring 2024 [OAK-2-LC]/DogCat/train'
+print(os.path.exists(path_to_check))
+
+  
+filenames = os.listdir('D:/Study Files/NEU/Academic/INFO7375 41272 ST Neural Networks & AI SEC 30 Spring 2024 [OAK-2-LC]/DogCat/train')
 categories = []
 for filename in filenames:
     category = filename.split('.')[0]
@@ -63,7 +72,7 @@ train_data_gen = ImageDataGenerator(
 
 train_generator = train_data_gen.flow_from_dataframe(
     train_data, 
-    "/kaggle/working/train/", 
+    "train/",  # Modify the path to match the extracted directory
     x_col='filename',
     y_col='category',
     target_size=(128,128),
@@ -76,7 +85,7 @@ train_generator = train_data_gen.flow_from_dataframe(
 valid_data_gen = ImageDataGenerator(rescale=1./255)
 
 valid_generator = valid_data_gen.flow_from_dataframe(valid_data, 
-    "/kaggle/working/train/", 
+    "train/",  # Modify the path to match the extracted directory
     x_col='filename',
     y_col='category',
     target_size=(128,128),
@@ -104,7 +113,7 @@ model = keras.models.Sequential([
                          keras.layers.Dense(units=2, activation='softmax')
 ])
 
-keras.utils.plot_model(model, 'model.png')
+plot_model(model, 'model.png')  # Use the imported function to plot the model
 
 
 model.summary()
@@ -117,7 +126,7 @@ model.fit(train_generator, epochs=30, verbose=1, validation_data=valid_generator
 model.save('cat_vs_dog_model.h5')
 
 
-test_filenames = os.listdir("/kaggle/working/test1")
+test_filenames = os.listdir("test1")  # Modify the path to match the extracted directory
 test_df = pd.DataFrame({
     'filename': test_filenames
 })
@@ -132,7 +141,7 @@ nb_samples = test_df.shape[0]
 test_gen = ImageDataGenerator(rescale=1./255)
 test_generator = test_gen.flow_from_dataframe(
     test_df, 
-    "/kaggle/working/test1", 
+    "test1",  # Modify the path to match the extracted directory
     x_col='filename',
     y_col=None,
     class_mode=None,
